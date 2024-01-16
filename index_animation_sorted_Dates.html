@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Georama:100,200,300,regular,500,600,700,800,900,100italic,200italic,300italic,italic,500italic,600italic,700italic,800italic,900italic" media="all">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        /* Add any styling here */
+        circle {
+            fill: rgb(29, 110, 65);
+            stroke: white;
+            stroke-width: 2px;
+        }
+    </style>
+    <style type="text/css">#mc_embed_signup input.mce_inline_error { border-color:#6B0505; } #mc_embed_signup div.mce_inline_error { margin: 0 0 1em 0; padding: 5px 10px; background-color:#6B0505; font-weight: bold; z-index: 1; color:#fff; }</style>
+</head>
+<body>
+
+<p id=fecha></p>
+<script>
+
+
+// Define projection
+    var projection = d3.geoMercator()
+            .center([-75.5636, 6.2518]) // Centered around Medellín, Colombia
+            .scale(70000) // Adjust scale as needed
+            .translate([width / 2, height / 2]);
+
+    // Create a path generator
+    var path = d3.geoPath().projection(projection);
+
+    // Load your GeoJSON file (replace 'yourfile.geojson' with the actual path to your GeoJSON file)
+    d3.json('/Users/sarangof/Documents/Personal/Edgelands/MDE.geojson').then(function (data) {
+        // Draw features
+        svg.selectAll('path')
+            .data(data.features)
+            .enter().append('path')
+            .attr('d', path)
+            .style('fill', 'steelblue')
+            .style('stroke', 'white')
+            .style('stroke-width', 1);
+        });
+
+    // Your data
+    var initialData = [
+        { latitude: 6.2518, longitude: -75.5636, date: "2024-01-15" },
+        { latitude: 6.2362, longitude: -75.5667, date: "2024-01-15" },
+        { latitude: 6.2510, longitude: -75.5802, date: "2024-01-17" },
+        { latitude: 6.2349, longitude: -75.5810, date: "2024-01-17" },
+        { latitude: 6.2442, longitude: -75.5944, date: "2024-01-17" },
+        { latitude: 6.2670, longitude: -75.5656, date: "2024-01-28" },
+        { latitude: 6.2763, longitude: -75.5951, date: "2024-01-21" },
+        { latitude: 6.2730, longitude: -75.5635, date: "2024-01-22" },
+        { latitude: 6.2658, longitude: -75.5790, date: "2024-01-22" },
+        { latitude: 6.2518, longitude: -75.5636, date: "2024-01-24" },
+    ];
+
+
+    // Sort data by date
+    initialData.sort(function (a, b) {
+        return new Date(a.date) - new Date(b.date);
+    });
+
+    // Set up SVG container
+    var width = 800;
+    var height = 600;
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Define scales
+    var projection = d3.geoMercator()
+        .center([-75.5636, 6.2518]) // Centered around Medellín, Colombia
+        .scale(70000) // Adjust scale as needed
+        .translate([width / 2, height / 2]);
+
+    // Draw basemap
+/*      svg.append("circle")
+        .attr("cx", width / 2)
+        .attr("cy", height / 2)
+        .attr("r", projection.scale())
+        .style("fill", "lightgray");  */
+
+    // Draw circles
+    var circles = svg.selectAll("circle");
+
+    // Function to update data for each frame
+    function updateData(date) {
+        document.getElementById("fecha").innerHTML=date;
+        var currentData = initialData.filter(function (d) {
+            return d.date === date;
+        });
+        // Update circles with current data
+        circles = circles.data(currentData, function (d) {
+            return d.latitude + "-" + d.longitude;
+        });
+        console.log(date);
+        console.log(circles);
+
+        //circles.exit().remove();
+
+        circles.enter().append("circle")
+            .attr("cx", function (d) { return projection([d.longitude, d.latitude])[0]; })
+            .attr("cy", function (d) { return projection([d.longitude, d.latitude])[1]; })
+            .attr("r", 5)
+            .style("fill", "steelblue")
+            .style("stroke", "white")
+            .style("stroke-width", 2)
+            .merge(circles)
+            .transition()
+            .duration(1000) // Adjust duration as needed
+            .attr("cx", function (d) { return projection([d.longitude, d.latitude])[0]; })
+            .attr("cy", function (d) { return projection([d.longitude, d.latitude])[1]; });
+    }
+
+    // Animation loop
+    var uniqueDates = Array.from(new Set(initialData.map(d => d.date)));
+    var currentDateIndex = 0;
+
+    function animate() {
+        updateData(uniqueDates[currentDateIndex]);
+        currentDateIndex = (currentDateIndex + 1) % uniqueDates.length;
+    }
+
+    // Set interval for animation
+    setInterval(animate, 2000); // Adjust interval as needed
+</script>
+
+</body>
+</html>
